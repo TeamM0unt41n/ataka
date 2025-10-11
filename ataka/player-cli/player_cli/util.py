@@ -1,6 +1,9 @@
 import os
 import re
 import time
+import json
+import getpass
+from pathlib import Path
 from datetime import datetime
 
 import player_cli
@@ -152,3 +155,25 @@ def parse_dockerfile_cmd(content: str) -> list[str] | None:
 
         return ret_arguments
     return None
+
+def load_config(path):
+    if isinstance(path, str):
+        path = Path(path)
+
+    try:
+        contents = (path / '.ataka').read_text()
+        data = json.loads(contents)
+        return data['service'], data['history_id'], data['user']
+    except FileNotFoundError:
+        print(f"{WARN_STR}: {path.resolve()} is not a known exploit")
+        return (None, None, None)
+
+def store_config(path, service, history_id, user=getpass.getuser()):
+    if isinstance(path, str):
+        path = Path(path)
+
+    try:
+        (path / '.ataka').write_text(json.dumps({'service': service, 'history_id': history_id, 'user': user}))
+    except FileNotFoundError:
+        print(f"{WARN_STR}: {path.resolve()} is not a known exploit")
+

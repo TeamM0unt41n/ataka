@@ -9,23 +9,17 @@ Or simply `atk flag submit <ENTER> <PASTE output / flags> <CTRL-D>`
 Update config:
 `atk reload`
 
-Create exploit template:
-`atk exploit template <python/ubuntu>[:version] <directory>`
+Create exploit:
+`atk exploit new`
 
 List services / flag ids:
 `atk flag ids [--all-targets]`
 
 Run exploit locally testing:
-`atk exploit runlocal <directory> <service>`
-
-Run exploit locally against everyone:
-`atk exploit runlocal --all-targets <directory> <service>`
-
-Create exploit on the server:
-`atk exploit create <exploitName> <service>`
+`atk exploit runlocal [--all-targets]`
 
 Upload exploit:
-`atk exploit upload <exploitName> <yourName> <directoryWithDockerFile>`
+`atk exploit upload`
 
 Logs:
-`atk exploit logs <exploitID> -n <numberOfIterations>`
+`atk exploit logs [-n <numberOfIterations>]`

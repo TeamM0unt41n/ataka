@@ -52,7 +52,21 @@ It will receive two environment variables:
 Your exploit should print the captured flags.
 They will be matched by a regular expression, so the output doesn't have to be clean.
 
-## Local exploits
+### Create and template a new exploit
+
+```
+atk exploit new
+```
+
+This asks you for a template. Choose one.
+
+As a next step, it asks you for the directory. If the current directory is empty, it skips this phase and just generates the exploit here, elseways lists the contents and prompts for a path.
+
+Then it asks for the service and exploit name.
+
+Finally it asks for your name. Give your username, or real name; this is for the sysadmin to identify you in case your exploits mess up.
+
+This templates a new directory, creates a remote exploit, and stores the metadata into `.ataka`
 
 ### Testing a local exploit
 
@@ -79,12 +93,11 @@ $ atk flag ids
 Run the exploit:
 
 ```
-$ atk exploit runlocal exploit.py SERVICE
+$ atk exploit runlocal
 ```
 
 Where:
 - `exploit.py` is your exploit (must be executable);
-- `SERVICE` is the target service name;
 
 This will test the exploit against the NOP team: `exploit runlocal` is supposed to be used for testing, not for actual attacks, which should be centralized to allow the captain to manage them.
 
@@ -99,48 +112,28 @@ This is useful in combination with `exploit download`, described in the next sec
 
 The local runner can run exploits against the real targets (`--all-targets`, or subsets via `-T/-N`).
 
-## Centralized exploits
-
 ### Deploying a centralized exploit
 
 To run on the centralized attacker, exploits must be wrapped in a Docker container and uploaded to the server.
 
-The CLI provides templates for common containers.
-For example, to get a Python (latest version) container, use:
+The CLI provides templates for common containers, see the above paragraphs.
+
+If you need it, you can edit the `Dockerfile` to specify e.g. custom versions (e.g., `python:3.12-slim`, `ubuntu:20.04`, and so forth).
+
+To upload your exploit directory:
 
 ```
-$ atk exploit template python DIR_NAME
+$ atk exploit upload
 ```
-
-Where `DIR_NAME` is the name of the directory that will be created.
-
-At the moment, we have templates for `python` (Python plus some common dependencies, such as pwntools, you can add more in `requirements.txt`) and `ubuntu` (Ubuntu with a bash exploit).
-You can also specify Docker tags for specific versions (e.g., `python:3.9-slim`, `ubuntu:18.04`, and so forth).
-
-Now you need to create an "exploit history", i.e., the collection which will contain all the versions of your exploit:
-
-```
-$ atk exploit create NAME SERVICE
-```
-
-Where `NAME` is the name of your exploit, and `SERVICE` is the target service (you can list them with `atk service ls`).
-
-Finally, upload your exploit directory:
-
-```
-$ atk exploit upload NAME AUTHOR DIR_NAME
-```
-
-Where `NAME` is the one you chose earlier, `AUTHOR` is your nickname, and `DIR_NAME` is the exploit directory.
 
 This will take care of uploading the exploit.
-You can check it with `atk exploit ls`.
+It also launches a job against the default target (NOP team) and shows you the output before activating it.
+You can check it with `atk exploit ls .`.
 
 Whenever you want to update your exploit to a new version, just issue the `exploit upload` command again.
 The attacker will assign progressive numbers to the versions, such as `NAME-1`, `NAME-2`, and so forth.
 
 Uploaded exploits can be downloaded by anyone with `atk exploit download EXPLOIT_ID OUTPUT_DIR`.
-
 
 ### (De)activating exploits
 
@@ -152,7 +145,6 @@ When `exploit activate` gets a history ID, it activates the most recent exploit 
 If an exploit is already active, it does nothing.
 
 When `exploit deactivate` gets a history ID, it deactivates all the exploits in the history.
-
 
 ### Switching exploit versions
 
@@ -191,14 +183,14 @@ cool-pwn (buffalo)
 
 ### Checking exploit logs
 
-You can check logs (including stdout/stderr) for a centralized exploit using `atk exploit logs NAME`, where `NAME` is a history or exploit ID.
+You can check logs (including stdout/stderr) for a centralized exploit using `atk exploit logs [NAME]`, where `NAME` is a history or exploit ID.
 If you pass an exploit ID, it will show logs for that specific version.
 If you pass a history ID, it will show logs for active exploits in the history.
+If you pass `auto` or `.`, this resolves to the current exploit directory [`auto` is the default]
 You can pass more than one ID and mix exploit and history IDs.
 
 By default, it will show logs from the current round.
 You can show logs from the last NUM rounds by passing `-n NUM`.
-
 
 ### Target management
 
