@@ -54,6 +54,8 @@ class Flags:
 
                             if len(submit_list) >= batchsize:
                                 break
+                            if len(dupe_list) > 30000:
+                                break
                     except TimeoutError as e:
                         pass
 
