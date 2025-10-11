@@ -25,6 +25,7 @@ services:
     image: postgres:14-alpine
     restart: always
     init: true
+    shm_size: 1g
     hostname: ataka-postgres
     ports:
       - "5432:5432"
