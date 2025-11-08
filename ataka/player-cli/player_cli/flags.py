@@ -56,7 +56,7 @@ def generate_flag_status_table(flags) -> Table:
     for flag in sorted(flags, key=lambda x: x['id']):
         # filter dupes
         if flag['status'] != 'duplicate_not_submitted':
-            status_line = ' -> '.join([FLAG_STATUS_COLOR[s](s) for s in flag['status_list']])
+            status_line = ' -> '.join([FLAG_STATUS_COLOR.get(s, lambda x: x)(s) for s in flag['status_list']])
             if has_targets:
                 table.add_row(str(flag['id']), flag['flag'], flag['target']['ip'], status_line)
             else:
