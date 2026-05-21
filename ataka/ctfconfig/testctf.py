@@ -1,69 +1,97 @@
 import json
+import requests
+    
+from pwn import *
 
 from ataka.common.flag_status import FlagStatus
 
 ### EXPORTED CONFIG
 
 # Ataka Host Domain / IP
-ATAKA_HOST = 'ataka.h4xx.eu'
+ATAKA_HOST = "10.2.1.7"
 
 # Default targets for atk runlocal
-RUNLOCAL_TARGETS = ["10.99.0.2"]
+RUNLOCAL_TARGETS = [
+    # NOP Team
+    "10.2.1.6",
+]
 
-# IPs that are always excluded from attacks.
-STATIC_EXCLUSIONS = {'10.99.1.2'}
+# IPs that are always excluded from attacks. These can be included in runlocal with --ignore-exclusions
+# These still get targets with flag ids, they're just never (automatically) attacked
+STATIC_EXCLUSIONS = {}
 
-ROUND_TIME = 10
+ROUND_TIME = 30
 
 # format: regex, group where group 0 means the whole regex
-FLAG_REGEX = r"[A-Z0-9]{31}=", 0
-# FLAG_REGEX = r"(?:[0-9]{1,3}\.){3}[0-9]{1,3}", 0
+FLAG_REGEX = r"FAUST_[A-Za-z0-9/+]{32}", 0
 
-FLAG_BATCHSIZE = 100
+# Maximum list length for submit_flags()
+FLAG_BATCHSIZE = 500
 
-FLAG_RATELIMIT = 1  # Wait in seconds between each call of submit_flags()
+# Minimum wait in seconds between each call of submit_flags()
+FLAG_RATELIMIT = 3
 
 # When the CTF starts
-START_TIME = 1690227547
-
+START_TIME = 1779217620 + 1  # Sun Jul 16 2023 09:00:00 GMT+0200 (Central European Summer Time)
 
 ### END EXPORTED CONFIG
 
+EDITION = 2023
+
+FLAGID_URL = f"http://10.2.1.8:8008/competition/teams.json"
+
+
 def get_targets():
-    services = ["buffalo", "gopher_coin", "kyc", "oly_consensus", "swiss_keys", "to_the_moon", "wall.eth"]
+    no_flagid_services = {"jokes", "office-supplies"}
 
-    default_targets = {service: {f"10.99.{i}.2": ["1234", "5678"] for i in range(10)} for service in services}
+    teams = requests.get(FLAGID_URL).json()
 
-    # remote fetch here
-    flag_ids = default_targets
+    team_ids = teams['teams']
+    flag_ids = teams['flag_ids']
+
+    ## A generic solution for just a single vulnbox:
+    default_targets = {service: {str(i): [] for i in team_ids} for service in no_flagid_services} | {service: {} for service in flag_ids.keys()}
 
     targets = {
         service: [
             {
-                "ip": ip,
-                "extra": json.dumps(ip_info),
+                "ip": f"10.2.1.6",
+                "extra": json.dumps(info),
             }
-            for ip, ip_info in (default_targets[service] | service_info).items()
+            for i, info in (default_targets[service] | service_info).items()
         ]
-        for service, service_info in ({service: [] for service in services} | flag_ids).items()
+        for service, service_info in ({service: {} for service in no_flagid_services} | flag_ids).items()
     }
 
     return targets
 
 
-submitted_flags = set()
-
-
-def _randomness():
-    import random
-    return \
-        random.choices([FlagStatus.OK, FlagStatus.INVALID, FlagStatus.INACTIVE, FlagStatus.OWNFLAG, FlagStatus.ERROR],
-                       weights=[0.5, 0.2, 0.2, 0.05, 0.1], k=1)[0]
-
-
 def submit_flags(flags):
-    import time
-    time.sleep(min(len(flags) / 1000, 2))
-    result = {flag: FlagStatus.DUPLICATE if flag in submitted_flags else _randomness() for flag in flags}
-    submitted_flags.update([flag for flag, status in result.items() if status != FlagStatus.ERROR])
-    return [result[flag] for flag in flags]
+    # TODO for next time: exchange with long-living socket, possibly async API
+    results = []
+    try:
+        HEADER = b"\nOne flag per line please!\n\n"
+        server = remote("10.2.1.8", 6666, timeout=2)
+        server.recvuntil(HEADER, timeout=5)
+        for flag in flags:
+            server.sendline(flag.encode())
+            response = server.recvline(timeout=2)
+            if b" INV" in response:
+               results += [FlagStatus.INVALID]
+            elif b' OLD' in response:
+                results += [FlagStatus.INACTIVE]
+            elif b' OK' in response:
+                results += [FlagStatus.OK]
+            elif b' OWN' in response:
+                results += [FlagStatus.OWNFLAG]
+            elif b' DUP' in response:
+                results += [FlagStatus.DUPLICATE]
+            else:
+                results += [FlagStatus.ERROR]
+                print(f"Invalid response: {response}")
+        server.close()
+    except Exception as e:
+        print(f"Exception: {e}", flush=True)
+        results += [FlagStatus.ERROR for _ in flags[len(results):]]
+
+    return results
