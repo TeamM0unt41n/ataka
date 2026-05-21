@@ -18,7 +18,7 @@ RUNLOCAL_TARGETS = [
 
 # IPs that are always excluded from attacks. These can be included in runlocal with --ignore-exclusions
 # These still get targets with flag ids, they're just never (automatically) attacked
-STATIC_EXCLUSIONS = {}
+STATIC_EXCLUSIONS = {'10.2.1.1'}
 
 ROUND_TIME = 30
 
@@ -42,7 +42,7 @@ FLAGID_URL = f"http://10.2.1.8:8008/competition/teams.json"
 
 
 def get_targets():
-    no_flagid_services = {"jokes", "office-supplies"}
+    no_flagid_services = set()
 
     teams = requests.get(FLAGID_URL).json()
 
