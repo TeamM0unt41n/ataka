@@ -9,9 +9,6 @@ services:
     image: rabbitmq:3.9-management-alpine
     restart: always
     init: true
-    expose:
-      - "15672"
-      - "5672"
     hostname: ataka-rabbitmq
     networks:
       - ataka
@@ -27,8 +24,6 @@ services:
     init: true
     shm_size: 1g
     hostname: ataka-postgres
-    ports:
-      - "5432:5432"
     networks:
       - ataka
     environment:
@@ -40,8 +35,6 @@ services:
   adminer:
     image: adminer:latest
     restart: always
-    ports:
-      - "8080:8080"
     hostname: ataka-adminer
     networks:
       - ataka
