@@ -53,7 +53,7 @@ services:
       - ${DATA_STORE}/shared:/data/shared:rw,z
       - ${DATA_STORE}/exploits:/data/exploits:rw,z
     ports:
-      - "8001:8000"
+      - "8000:8000"
     security_opt:
       - label:disable
     depends_on:
