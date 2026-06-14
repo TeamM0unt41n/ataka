@@ -55,7 +55,7 @@ def get_targets():
     targets = {
         service: [
             {
-                "ip": f"10.67.1.2",
+                "ip": f"10.67.{i}.2",
                 "extra": json.dumps(info),
             }
             for i, info in (default_targets[service] | service_info).items()
