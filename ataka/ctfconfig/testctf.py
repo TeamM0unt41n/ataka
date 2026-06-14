@@ -8,12 +8,12 @@ from ataka.common.flag_status import FlagStatus
 ### EXPORTED CONFIG
 
 # Ataka Host Domain / IP
-ATAKA_HOST = "10.2.1.7:8001"
+ATAKA_HOST = "10.67.1.3:8001"
 
 # Default targets for atk runlocal
 RUNLOCAL_TARGETS = [
     # NOP Team
-    "10.2.1.6",
+    "10.67.3.2",
 ]
 
 # IPs that are always excluded from attacks. These can be included in runlocal with --ignore-exclusions
@@ -32,13 +32,13 @@ FLAG_BATCHSIZE = 500
 FLAG_RATELIMIT = 3
 
 # When the CTF starts
-START_TIME = 1779217620 + 1  # Sun Jul 16 2023 09:00:00 GMT+0200 (Central European Summer Time)
+START_TIME = 1781416800 + 1  # Sun Jul 16 2023 09:00:00 GMT+0200 (Central European Summer Time)
 
 ### END EXPORTED CONFIG
 
 EDITION = 2023
 
-FLAGID_URL = f"http://10.2.1.8:8008/competition/teams.json"
+FLAGID_URL = f"http://10.67.1.1/competition/teams.json"
 
 
 def get_targets():
@@ -55,7 +55,7 @@ def get_targets():
     targets = {
         service: [
             {
-                "ip": f"10.2.1.6",
+                "ip": f"10.67.1.2",
                 "extra": json.dumps(info),
             }
             for i, info in (default_targets[service] | service_info).items()
@@ -71,7 +71,7 @@ def submit_flags(flags):
     results = []
     try:
         HEADER = b"\nOne flag per line please!\n\n"
-        server = remote("10.2.1.8", 6666, timeout=2)
+        server = remote("10.67.1.1", 6666, timeout=2)
         server.recvuntil(HEADER, timeout=5)
         for flag in flags:
             server.sendline(flag.encode())
