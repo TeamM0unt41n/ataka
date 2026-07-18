@@ -143,6 +143,7 @@ services:
     image: nginx:latest
     volumes:
     - ./nginx.conf:/etc/nginx/nginx.conf
+    - ./.htpasswd:/.htpasswd
     ports:
       - "8000:8000"
     networks:
