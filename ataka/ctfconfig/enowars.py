@@ -51,7 +51,7 @@ FLAG_SUBMIT_HOST = "10.0.13.37"
 FLAG_SUBMIT_PORT = 1337
 
 # Ataka Host Domain / IP
-ATAKA_HOST = "ataka.local"
+ATAKA_HOST = "ad:cd37613871b0ecf9b6c1f91f0375a687ece7fedb@chonker.mnta.in:8000"
 
 
 RUNLOCAL_TARGETS = ["10.1.1.1"]
@@ -79,7 +79,14 @@ FLAGID_URL = 'https://10.enowars.com/scoreboard/attack.json'
 
 def get_services():
     print("Fetching services from Enowars config...")
-    return ["example-service"]
+    return ["d3pl0y", "flagdrive", "funsplash", "greple", "inbox", "Leet-date", "mediocre", "Over Eats", "SignMeMaybe", "superregister"]
+
+
+def get_all_target_ips() -> set:
+    r = requests.get(f"https://10.enowars.com/api/data/ips")
+    ips = r.text.split("\n")
+    ips = [ip for ip in ips if ip != ""]
+    return set(ips)
 
 def get_all_target_ips() -> set:
     r = requests.get(f"https://10.enowars.com/api/data/ips")
@@ -97,7 +104,7 @@ def get_targets():
             service: [
                 {
                     'ip': ip,
-                    'extra': json.dumps([x for tick, flagids in ip_info.items() for x in flagids]),
+                    'extra': json.dumps([flagids for tick, flagids in ip_info.items()]),
                 }
                 for ip, ip_info in flag_ids[service].items()
             ]
