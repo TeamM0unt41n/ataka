@@ -53,8 +53,6 @@ FLAG_SUBMIT_PORT = 1337
 # Ataka Host Domain / IP
 ATAKA_HOST = "ataka.local"
 
-# Our own host
-OWN_HOST = "10.1.2.1"
 
 RUNLOCAL_TARGETS = ["10.1.1.1"]
 
@@ -69,47 +67,44 @@ FLAG_BATCHSIZE = 1000
 
 FLAG_RATELIMIT = 5  # Wait in seconds between each call of submit_flags()
 
-START_TIME = 1690027200
+START_TIME = 1784368800
 
 # IPs that are always excluded from attacks.
-STATIC_EXCLUSIONS = set(["10.1.2.1"])
+STATIC_EXCLUSIONS = set(["10.1.200.1"])
 
 # End config
 
-
-def get_services() -> list:
-    return [
-        "asocialnetwork",
-        "bollwerk",
-        "phreaking",
-        "yvm",
-        "granulizer",
-        "oldschool",
-        "steinsgate",
-    ]
+FLAGID_URL = 'https://10.enowars.com/scoreboard/attack.json'
 
 
-def get_targets() -> dict:
-    r = requests.get(f"https://7.enowars.com/scoreboard/attack.json")
-
-    services = r.json()["services"]
-    print("getting services")
-    return {
-        service: [
-            {"ip": ip, "extra": json.dumps(services[service][ip])}
-            for ip in services[service].keys()
-        ]
-        if service in services
-        else [{"ip": ip, "extra": "[]"} for ip in get_all_target_ips()]
-        for service in get_services()
-    }
+def get_services():
+    print("Fetching services from Enowars config...")
+    return ["example-service"]
 
 
-def get_all_target_ips() -> set:
-    r = requests.get(f"https://7.enowars.com/api/data/ips")
-    ips = r.text.split("\n")
-    ips = [ip for ip in ips if ip != ""]
-    return set(ips)
+def get_targets():
+    try:
+        dt = requests.get(FLAGID_URL).json()
+
+        flag_ids = dt['services']
+        teams = dt['availableTeams']
+        targets = {
+            service: [
+                {
+                    'ip': ip,
+                    'extra': json.dumps([x for tick, flagids in ip_info.items() for x in flagids]),
+                }
+                for ip, ip_info in flag_ids[service].items()
+            ]
+            if service in flag_ids
+            else [{"ip": ip, "extra": "[]"} for ip in get_all_target_ips()]
+            for service in get_services()
+        }
+
+        return targets
+    except Exception as e:
+        print(f"Error while getting targets: {e}")
+        return {service: [] for service in get_services()}
 
 
 def submit_flags(flags) -> list:
