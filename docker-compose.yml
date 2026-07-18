@@ -52,8 +52,8 @@ services:
     volumes:
       - ${DATA_STORE}/shared:/data/shared:rw,z
       - ${DATA_STORE}/exploits:/data/exploits:rw,z
-    ports:
-      - "8000:8000"
+    #ports:
+    #  - "8000:8000"
     security_opt:
       - label:disable
     depends_on:
@@ -138,6 +138,18 @@ services:
       - ataka
     env_file:
       - .env
+  
+  nginx:
+    image: nginx:latest
+    volumes:
+    - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "8000:8000"
+    networks:
+      - ataka
+    depends_on:
+      - api
+    restart: always
 
 volumes:
   postgres-data:
