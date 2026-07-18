@@ -81,6 +81,11 @@ def get_services():
     print("Fetching services from Enowars config...")
     return ["example-service"]
 
+def get_all_target_ips() -> set:
+    r = requests.get(f"https://10.enowars.com/api/data/ips")
+    ips = r.text.split("\n")
+    ips = [ip for ip in ips if ip != ""]
+    return set(ips)
 
 def get_targets():
     try:
